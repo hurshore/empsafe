@@ -5,7 +5,8 @@ import { Prisma } from '@prisma/client';
 import * as argon from 'argon2';
 
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SignupDto } from './dto/signup.dto';
+import { OtpService } from 'src/otp/otp.service';
+import { SendOtpDto, SignupDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private otpService: OtpService,
   ) {}
 
   async signup(dto: SignupDto) {
@@ -24,6 +26,7 @@ export class AuthService {
       delete data.password;
 
       const user = await this.prisma.user.create({ data });
+      this.sendOtp({ email: dto.email });
 
       return user;
     } catch (e) {
@@ -36,5 +39,9 @@ export class AuthService {
       }
       throw e;
     }
+  }
+
+  async sendOtp(dto: SendOtpDto) {
+    return this.otpService.sendOtp(dto.email);
   }
 }
